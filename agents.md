@@ -15,10 +15,14 @@ GCP VM (n2d-standard-4 or n2d-standard-8)
     │   ├── .aliases                  ← Shell aliases (symlink)
     │   ├── .bun/                     ← Bun installation
     │   └── .gitconfig                ← Git config (dynamic)
-    └── /usr/local/bin/               ← System-wide binaries
-        ├── bun, bunx                 ← Symlinks to ~/.bun/bin/
+    ├── /usr/local/bin/               ← System-wide symlinks
+    │   ├── bun, bunx                 ← Symlinks to ~/.bun/bin/
+    │   └── git                       ← Git
+    └── /usr/bin/                     ← npm global installs
         ├── claude                    ← Claude Code CLI
-        └── codex                     ← Codex CLI
+        ├── codex                     ← Codex CLI
+        ├── node                      ← Node.js 22
+        └── gh                        ← GitHub CLI
 ```
 
 ## Identify Your Project
@@ -38,8 +42,8 @@ Your project code is at `/workspaces/<project-name>/`. This is a git repo cloned
 | **bun** | `/usr/local/bin/bun` | latest | Package manager. **Always use bun, never npm/yarn/pnpm.** |
 | **node** | `/usr/bin/node` | 22.x | System-wide. Used by Claude Code and Codex internally. |
 | **convex** | `~/.bun/bin/convex` | latest | Convex CLI. Also via `bunx convex` or alias `cx`. |
-| **claude** | `/usr/local/bin/claude` | latest | Claude Code CLI. Auth via OAuth device code. |
-| **codex** | `/usr/local/bin/codex` | latest | OpenAI Codex CLI. Auth via OAuth device code. |
+| **claude** | `/usr/bin/claude` | latest | Claude Code CLI. Auth via OAuth device code. |
+| **codex** | `/usr/bin/codex` | latest | OpenAI Codex CLI. Auth via OAuth device code. |
 | **gh** | `/usr/bin/gh` | latest | GitHub CLI. Auth via `GH_TOKEN` in devpod-env. |
 | **git** | `/usr/bin/git` | latest | Pre-configured with identity and team defaults. |
 
