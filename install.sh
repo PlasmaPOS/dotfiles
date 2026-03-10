@@ -9,15 +9,13 @@ if [ ! -f "$HOME/.bun/bin/bun" ]; then
   curl -fsSL https://bun.sh/install | bash
 fi
 
-# Ensure bun PATH in all shell profiles
+# Ensure bun PATH in all shell profiles (including .profile for non-interactive SSH)
 for rc in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.profile"; do
-  if [ -f "$rc" ] || [ "$rc" = "$HOME/.bashrc" ]; then
-    if ! grep -q 'BUN_INSTALL' "$rc" 2>/dev/null; then
-      echo '' >> "$rc"
-      echo '# Bun' >> "$rc"
-      echo 'export BUN_INSTALL="$HOME/.bun"' >> "$rc"
-      echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> "$rc"
-    fi
+  if ! grep -q 'BUN_INSTALL' "$rc" 2>/dev/null; then
+    echo '' >> "$rc"
+    echo '# Bun' >> "$rc"
+    echo 'export BUN_INSTALL="$HOME/.bun"' >> "$rc"
+    echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> "$rc"
   fi
 done
 
