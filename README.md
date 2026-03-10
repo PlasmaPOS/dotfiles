@@ -78,10 +78,13 @@ Each `projects/<name>.env` file lists its required secrets as `# OP_ITEM:` comme
 
 Git identity is **dynamic** — no hardcoded names in this repo. Resolution order:
 
-1. `.git-identity` file in this repo (gitignored) — created by `setup-devpod.sh`
+1. `.git-identity` file in this repo (gitignored, local override only — won't reach remote clones)
 2. `GIT_USER_NAME` / `GIT_USER_EMAIL` env vars (from `devpod-env` or environment)
 3. `GIT_AUTHOR_NAME` / `GIT_AUTHOR_EMAIL` (standard git env vars)
-4. Warning printed if nothing is set
+4. **GitHub API auto-detection** — if `GH_TOKEN` is available, `install.sh` fetches your name/email from your GitHub profile automatically
+5. Warning printed if nothing is set
+
+In practice, most developers just need `GH_TOKEN` set — identity is auto-detected from GitHub.
 
 Team-wide git defaults applied to everyone:
 

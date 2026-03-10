@@ -3,7 +3,7 @@ set -e
 
 echo "=== Installing dotfiles ==="
 
-# Bun
+# ─── Bun ──────────────────────────────────────────────────────────────
 if [ ! -f "$HOME/.bun/bin/bun" ]; then
   echo "Installing bun..."
   curl -fsSL https://bun.sh/install | bash
@@ -33,47 +33,12 @@ fi
 echo "Installing global tools..."
 bun add -g convex 2>/dev/null || true
 
-# Link dotfiles
+# ─── Dotfiles linking ─────────────────────────────────────────────────
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 if [ -f "$DOTFILES_DIR/.aliases" ]; then
   ln -sf "$DOTFILES_DIR/.aliases" "$HOME/.aliases"
   echo "Linked .aliases"
-fi
-
-# ─── Git config (dynamic — no hardcoded identity) ─────────────────────
-# Identity is set from env vars or devpod-env. Team-wide defaults applied for everyone.
-# To set your identity, add to ~/.config/devpod-env BEFORE workspace creation:
-#   export GIT_USER_NAME="Your Name"
-#   export GIT_USER_EMAIL="you@company.com"
-
-# Team-wide git defaults (safe for everyone)
-git config --global init.defaultBranch main
-git config --global pull.rebase true
-git config --global push.autoSetupRemote true
-git config --global core.autocrlf input
-
-# Load identity from .git-identity file if present (gitignored, created by setup-devpod.sh)
-if [ -f "$DOTFILES_DIR/.git-identity" ]; then
-  source "$DOTFILES_DIR/.git-identity"
-fi
-
-# Set identity from env vars (GIT_USER_NAME/EMAIL or GIT_AUTHOR_NAME/EMAIL)
-_git_name="${GIT_USER_NAME:-${GIT_AUTHOR_NAME:-}}"
-_git_email="${GIT_USER_EMAIL:-${GIT_AUTHOR_EMAIL:-}}"
-
-if [ -n "$_git_name" ]; then
-  git config --global user.name "$_git_name"
-  echo "Git user.name set to: $_git_name"
-elif ! git config --global user.name &>/dev/null; then
-  echo "⚠ Git user.name not set — add GIT_USER_NAME to ~/.config/devpod-env"
-fi
-
-if [ -n "$_git_email" ]; then
-  git config --global user.email "$_git_email"
-  echo "Git user.email set to: $_git_email"
-elif ! git config --global user.email &>/dev/null; then
-  echo "⚠ Git user.email not set — add GIT_USER_EMAIL to ~/.config/devpod-env"
 fi
 
 # Source aliases in bashrc
@@ -83,14 +48,9 @@ if ! grep -q '.aliases' "$HOME/.bashrc" 2>/dev/null; then
   echo '[ -f "$HOME/.aliases" ] && source "$HOME/.aliases"' >> "$HOME/.bashrc"
 fi
 
-# ─── Environment tokens ───────────────────────────────────────────────
-# Tokens are stored in ~/.config/devpod-env and sourced from all shell profiles.
-# This file is the single source of truth — no tokens scattered across rc files.
-#
-# How to inject tokens:
-#   Option A: Set GH_TOKEN env var before workspace creation
-#   Option B: Place a .gh-token file in the dotfiles repo (gitignored)
-#   Option C: After workspace creation, run: echo 'export GH_TOKEN=ghp_xxx' >> ~/.config/devpod-env
+# ─── Environment tokens ──────────────────────────────────────────────
+# Single source of truth for all env vars. Must be set up BEFORE git
+# identity detection (which may need GH_TOKEN for GitHub API lookup).
 
 ENV_FILE="$HOME/.config/devpod-env"
 mkdir -p "$(dirname "$ENV_FILE")"
@@ -121,6 +81,58 @@ if [ -n "$GH_TOKEN" ]; then
   echo "gh CLI configured with token auth"
 else
   echo "No GH_TOKEN found — run: echo 'export GH_TOKEN=ghp_xxx' >> ~/.config/devpod-env"
+fi
+
+# ─── Git config (dynamic identity) ───────────────────────────────────
+# Team-wide defaults applied for everyone. Identity is resolved from
+# multiple sources — most developers just need GH_TOKEN set.
+
+git config --global init.defaultBranch main
+git config --global pull.rebase true
+git config --global push.autoSetupRemote true
+git config --global core.autocrlf input
+
+# Load identity from .git-identity file if present (gitignored, local override only)
+if [ -f "$DOTFILES_DIR/.git-identity" ]; then
+  source "$DOTFILES_DIR/.git-identity"
+fi
+
+# Resolution order:
+#   1. .git-identity file (local override, won't exist in remote clones)
+#   2. GIT_USER_NAME/EMAIL env vars (from devpod-env or environment)
+#   3. GIT_AUTHOR_NAME/EMAIL (standard git env vars)
+#   4. GitHub API auto-detection (if GH_TOKEN is available)
+#   5. Warning if nothing found
+_git_name="${GIT_USER_NAME:-${GIT_AUTHOR_NAME:-}}"
+_git_email="${GIT_USER_EMAIL:-${GIT_AUTHOR_EMAIL:-}}"
+
+# Auto-detect from GitHub profile if no explicit identity set
+if [ -z "$_git_name" ] || [ -z "$_git_email" ]; then
+  if [ -n "$GH_TOKEN" ] && command -v gh &>/dev/null; then
+    if [ -z "$_git_name" ]; then
+      _git_name="$(gh api user --jq '.name' 2>/dev/null || true)"
+    fi
+    if [ -z "$_git_email" ]; then
+      _git_email="$(gh api user --jq '.email' 2>/dev/null || true)"
+    fi
+    if [ -n "$_git_name" ] || [ -n "$_git_email" ]; then
+      echo "Git identity auto-detected from GitHub profile"
+    fi
+  fi
+fi
+
+if [ -n "$_git_name" ]; then
+  git config --global user.name "$_git_name"
+  echo "Git user.name set to: $_git_name"
+elif ! git config --global user.name &>/dev/null; then
+  echo "⚠ Git user.name not set — add GIT_USER_NAME to ~/.config/devpod-env"
+fi
+
+if [ -n "$_git_email" ]; then
+  git config --global user.email "$_git_email"
+  echo "Git user.email set to: $_git_email"
+elif ! git config --global user.email &>/dev/null; then
+  echo "⚠ Git user.email not set — add GIT_USER_EMAIL to ~/.config/devpod-env"
 fi
 
 # ─── Project env auto-detection ──────────────────────────────────────

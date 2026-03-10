@@ -44,8 +44,8 @@ read -rp "Git user email (e.g. shlomo@plasmapos.com): " git_email
 DOTFILES_LOCAL="$(cd "$(dirname "$0")" && pwd)"
 if [ -n "$git_name" ] && [ -n "$git_email" ]; then
   cat > "$DOTFILES_LOCAL/.git-identity" <<EOF
-GIT_USER_NAME=$git_name
-GIT_USER_EMAIL=$git_email
+GIT_USER_NAME="$git_name"
+GIT_USER_EMAIL="$git_email"
 EOF
   echo "Saved git identity to .git-identity (gitignored, local only)"
 fi
