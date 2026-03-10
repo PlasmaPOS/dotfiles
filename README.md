@@ -70,6 +70,21 @@ The `~/.config/devpod-env` file is sourced by all shell profiles. Use it for any
 ssh dev-agent.devpod 'echo "export MY_VAR=value" >> ~/.config/devpod-env'
 ```
 
+## Fresh Machine Setup
+
+If setting up DevPod from scratch (new machine, disaster recovery):
+
+```bash
+# 1. Install DevPod CLI: https://devpod.sh/docs/getting-started/install
+# 2. Run the setup script:
+./setup-devpod.sh
+
+# 3. Create your first workspace:
+devpod up PlasmaPOS/dev-agent
+```
+
+The `setup-devpod.sh` script configures the GCP provider with all correct settings (project, zone, machine type, disk size, inactivity timeout, dotfiles URL).
+
 ## Usage
 
 Automatically applied when creating workspaces:
