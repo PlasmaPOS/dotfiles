@@ -35,6 +35,21 @@ devpod context set-options -o DOTFILES_URL=https://github.com/PlasmaPOS/dotfiles
 # 4. Set GCP as default provider
 devpod provider use gcloud
 
+# 5. Configure git identity
+# Create a local .git-identity file (gitignored) so install.sh picks it up automatically
+echo ""
+read -rp "Git user name (e.g. Shlomo Kabareti): " git_name
+read -rp "Git user email (e.g. shlomo@plasmapos.com): " git_email
+
+DOTFILES_LOCAL="$(cd "$(dirname "$0")" && pwd)"
+if [ -n "$git_name" ] && [ -n "$git_email" ]; then
+  cat > "$DOTFILES_LOCAL/.git-identity" <<EOF
+GIT_USER_NAME=$git_name
+GIT_USER_EMAIL=$git_email
+EOF
+  echo "Saved git identity to .git-identity (gitignored, local only)"
+fi
+
 echo ""
 echo "=== DevPod setup complete ==="
 echo ""

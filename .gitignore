@@ -1,3 +1,4 @@
 .gh-token
+.git-identity
 *.key
 *.pem

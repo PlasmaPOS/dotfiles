@@ -36,12 +36,45 @@ bun add -g convex 2>/dev/null || true
 # Link dotfiles
 DOTFILES_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-for file in .gitconfig .aliases; do
-  if [ -f "$DOTFILES_DIR/$file" ]; then
-    ln -sf "$DOTFILES_DIR/$file" "$HOME/$file"
-    echo "Linked $file"
-  fi
-done
+if [ -f "$DOTFILES_DIR/.aliases" ]; then
+  ln -sf "$DOTFILES_DIR/.aliases" "$HOME/.aliases"
+  echo "Linked .aliases"
+fi
+
+# ─── Git config (dynamic — no hardcoded identity) ─────────────────────
+# Identity is set from env vars or devpod-env. Team-wide defaults applied for everyone.
+# To set your identity, add to ~/.config/devpod-env BEFORE workspace creation:
+#   export GIT_USER_NAME="Your Name"
+#   export GIT_USER_EMAIL="you@company.com"
+
+# Team-wide git defaults (safe for everyone)
+git config --global init.defaultBranch main
+git config --global pull.rebase true
+git config --global push.autoSetupRemote true
+git config --global core.autocrlf input
+
+# Load identity from .git-identity file if present (gitignored, created by setup-devpod.sh)
+if [ -f "$DOTFILES_DIR/.git-identity" ]; then
+  source "$DOTFILES_DIR/.git-identity"
+fi
+
+# Set identity from env vars (GIT_USER_NAME/EMAIL or GIT_AUTHOR_NAME/EMAIL)
+_git_name="${GIT_USER_NAME:-${GIT_AUTHOR_NAME:-}}"
+_git_email="${GIT_USER_EMAIL:-${GIT_AUTHOR_EMAIL:-}}"
+
+if [ -n "$_git_name" ]; then
+  git config --global user.name "$_git_name"
+  echo "Git user.name set to: $_git_name"
+elif ! git config --global user.name &>/dev/null; then
+  echo "⚠ Git user.name not set — add GIT_USER_NAME to ~/.config/devpod-env"
+fi
+
+if [ -n "$_git_email" ]; then
+  git config --global user.email "$_git_email"
+  echo "Git user.email set to: $_git_email"
+elif ! git config --global user.email &>/dev/null; then
+  echo "⚠ Git user.email not set — add GIT_USER_EMAIL to ~/.config/devpod-env"
+fi
 
 # Source aliases in bashrc
 if ! grep -q '.aliases' "$HOME/.bashrc" 2>/dev/null; then

@@ -6,7 +6,7 @@ Shared dotfiles for all DevPod cloud workspaces. Auto-installed via `--dotfiles`
 
 - Installs bun and adds it to PATH (all shells + non-interactive SSH)
 - Installs global tools: convex CLI
-- Sets up git config (name, email, rebase on pull)
+- Sets up git config (dynamic identity via `.git-identity`, team-wide defaults for rebase/push)
 - Adds common aliases for bun, git, convex
 - Configures GitHub CLI auth if `GH_TOKEN` is available
 - Creates `~/.config/devpod-env` for persistent environment tokens
@@ -70,20 +70,36 @@ The `~/.config/devpod-env` file is sourced by all shell profiles. Use it for any
 ssh dev-agent.devpod 'echo "export MY_VAR=value" >> ~/.config/devpod-env'
 ```
 
+## Git Identity
+
+Git identity is **not hardcoded** — each developer sets their own. The `setup-devpod.sh` script creates a `.git-identity` file (gitignored) that `install.sh` reads automatically:
+
+```bash
+# Created by setup-devpod.sh (or manually):
+echo 'GIT_USER_NAME=Shlomo Kabareti' > .git-identity
+echo 'GIT_USER_EMAIL=shlomo@plasmapos.com' >> .git-identity
+```
+
+Team-wide git defaults (rebase on pull, auto-setup remote, main as default branch) are applied to everyone.
+
 ## Fresh Machine Setup
 
 If setting up DevPod from scratch (new machine, disaster recovery):
 
 ```bash
 # 1. Install DevPod CLI: https://devpod.sh/docs/getting-started/install
-# 2. Run the setup script:
+# 2. Clone this repo
+git clone https://github.com/PlasmaPOS/dotfiles.git
+cd dotfiles
+
+# 3. Run the setup script (configures GCP provider + git identity)
 ./setup-devpod.sh
 
-# 3. Create your first workspace:
+# 4. Create your first workspace
 devpod up PlasmaPOS/dev-agent
 ```
 
-The `setup-devpod.sh` script configures the GCP provider with all correct settings (project, zone, machine type, disk size, inactivity timeout, dotfiles URL).
+The `setup-devpod.sh` script configures the GCP provider with all correct settings (project, zone, machine type, disk size, inactivity timeout, dotfiles URL) and creates your `.git-identity` file.
 
 ## Usage
 
