@@ -1,0 +1,22 @@
+# Package manager
+alias bi="bun install"
+alias ba="bun add"
+alias br="bun run"
+alias bt="bun test"
+alias bx="bunx"
+
+# Git shortcuts
+alias gs="git status"
+alias gd="git diff"
+alias gl="git log --oneline -20"
+alias gp="git push"
+alias gc="git commit"
+
+# Convex
+alias cx="bunx convex"
+alias cxd="bunx convex dev"
+
+# Navigation
+alias ll="ls -la"
+alias ..="cd .."
+alias ...="cd ../.."

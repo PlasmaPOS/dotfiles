@@ -1,0 +1,11 @@
+[user]
+    name = Shlomo Kabareti
+    email = shlomo@plasmapos.com
+[init]
+    defaultBranch = main
+[pull]
+    rebase = true
+[push]
+    autoSetupRemote = true
+[core]
+    autocrlf = input
