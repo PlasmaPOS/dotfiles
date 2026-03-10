@@ -23,6 +23,12 @@ done
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 
+# Symlink bun into system PATH for non-interactive SSH sessions
+if [ -f "$HOME/.bun/bin/bun" ] && [ ! -f /usr/local/bin/bun ]; then
+  sudo ln -sf "$HOME/.bun/bin/bun" /usr/local/bin/bun 2>/dev/null || true
+  sudo ln -sf "$HOME/.bun/bin/bunx" /usr/local/bin/bunx 2>/dev/null || true
+fi
+
 # Install global tools via bun
 echo "Installing global tools..."
 bun add -g convex 2>/dev/null || true
