@@ -161,6 +161,60 @@ VITE_CLERK_PUBLISHABLE_KEY=pk_test_xxx
 | `seal` | Legal/contracts | `light` | n2d-standard-4 |
 | `aqua` | Water delivery | `light` | n2d-standard-4 |
 
+## Adding a New Project Workspace
+
+To set up a DevPod workspace for a project (one-time per project):
+
+### Step 1: Add `devcontainer.json` to the project repo
+
+Create `.devcontainer/devcontainer.json` in the project's GitHub repo:
+
+```json
+{
+  "name": "my-project",
+  "image": "ghcr.io/plasmapos/devcontainers/light:latest",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "postCreateCommand": "bun install",
+  "runArgs": ["--shm-size=2g"]
+}
+```
+
+Use `light` for backend/simple projects, `full` for projects with mobile/E2E testing.
+
+### Step 2: Create the workspace
+
+```bash
+# Light projects (dev-agent, seal, aqua)
+devpod up PlasmaPOS/seal
+
+# Full projects — override machine type for more resources
+devpod up PlasmaPOS/plasma --provider-option MACHINE_TYPE=n2d-standard-8
+```
+
+This pulls the Docker image, clones the repo, runs dotfiles `install.sh` (which auto-detects the project and loads its env vars), and runs `bun install`.
+
+### Step 3: Inject secrets (once)
+
+The install script will print which secrets are missing. Add them:
+
+```bash
+ssh seal.devpod 'echo "export CLERK_SECRET_KEY=sk_test_xxx" >> ~/.config/devpod-env'
+ssh seal.devpod 'echo "export STRIPE_SECRET_KEY=sk_test_xxx" >> ~/.config/devpod-env'
+```
+
+### Step 4: Auth AI CLIs (once)
+
+```bash
+ssh seal.devpod
+claude    # approve device code in browser
+codex     # approve device code in browser
+```
+
+That's it. The workspace persists across stop/start. Only `--reset` requires re-doing steps 3-4.
+
 ## Fresh Machine Setup
 
 If setting up DevPod from scratch (new machine, disaster recovery):
