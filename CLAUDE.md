@@ -28,7 +28,7 @@ Host machine                          GCP VM (DevPod workspace)
 | `.git-identity` | Developer's git name/email. **Gitignored.** | Read by `install.sh` |
 | `.gh-token` | GitHub PAT. **Gitignored.** | Read by `install.sh` |
 | `projects/<name>.env` | Per-project env vars (public values + secret references). | Read by `install.sh` |
-| `inject-secrets.sh` | Helper: scrapes secrets from local .env.local into workspace. | Manual, per workspace |
+| `sync-env.sh` | Helper: scrapes secrets from local .env.local into workspace. | Manual, per workspace |
 
 ## Conventions
 
