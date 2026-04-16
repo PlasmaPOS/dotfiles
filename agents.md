@@ -40,10 +40,8 @@ Your project code is at `/workspaces/<project-name>/`. This is a git repo cloned
 | Tool | Path | Version | Notes |
 |------|------|---------|-------|
 | **bun** | `/usr/local/bin/bun` | latest | Package manager. **Always use bun, never npm/yarn/pnpm.** |
-| **node** | `/usr/bin/node` | 22.x | System-wide. Used by Claude Code and Codex internally. |
+| **node** | `/usr/bin/node` | 22.x | System-wide. |
 | **convex** | `~/.bun/bin/convex` | latest | Convex CLI. Also via `bunx convex` or alias `cx`. |
-| **claude** | `/usr/bin/claude` | latest | Claude Code CLI. Auth via OAuth device code. |
-| **codex** | `/usr/bin/codex` | latest | OpenAI Codex CLI. Auth via OAuth device code. |
 | **gh** | `/usr/bin/gh` | latest | GitHub CLI. Auth via `GH_TOKEN` in devpod-env. |
 | **git** | `/usr/bin/git` | latest | Pre-configured with identity and team defaults. |
 
@@ -152,9 +150,11 @@ All projects use **Convex** as the backend and **Clerk** for authentication. Mos
    devpod provider set-options gcloud -o INACTIVITY_TIMEOUT=0
    ```
 
-5. **Non-interactive SSH works.** All critical tools (`bun`, `claude`, `codex`, `node`) are in `/usr/local/bin`. You don't need to source `.bashrc` for them to work.
+5. **Non-interactive SSH works.** All critical tools (`bun`, `node`) are in `/usr/local/bin`. You don't need to source `.bashrc` for them to work.
 
 6. **Git push requires GH_TOKEN.** If `git push` fails with auth errors, check `echo $GH_TOKEN`. If empty, the token wasn't injected at workspace creation.
+
+7. **AI CLIs run locally.** Claude Code and Codex run on the host machine, not inside the workspace. The agent connects via SSH. Do not try to install or run them inside the container.
 
 7. **Each workspace is isolated.** Your workspace has its own VM, its own Docker container, its own env vars. Changes here don't affect other workspaces.
 

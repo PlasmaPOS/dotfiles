@@ -28,6 +28,7 @@ Host machine                          GCP VM (DevPod workspace)
 | `.git-identity` | Developer's git name/email. **Gitignored.** | Read by `install.sh` |
 | `.gh-token` | GitHub PAT. **Gitignored.** | Read by `install.sh` |
 | `projects/<name>.env` | Per-project env vars (public values + secret references). | Read by `install.sh` |
+| `inject-secrets.sh` | Helper: scrapes secrets from local .env.local into workspace. | Manual, per workspace |
 
 ## Conventions
 
@@ -55,6 +56,13 @@ Host machine                          GCP VM (DevPod workspace)
 - Use `grep -q` checks before appending to files
 - Use `2>/dev/null || true` for operations that may fail on some systems
 - Test changes by running `devpod up --reset` on an existing workspace
+
+### AI CLIs
+
+- Claude Code and Codex run **locally** on the host machine, not in the workspace
+- They connect to the workspace via `ssh <project>.devpod`
+- Do NOT install them in the Docker image or inside the workspace
+- This avoids version drift and keeps images small
 
 ### Environment variables
 

@@ -111,24 +111,9 @@ echo "ghp_xxx" > .gh-token
 ssh <project>.devpod 'echo "export GH_TOKEN=ghp_xxx" >> ~/.config/devpod-env'
 ```
 
-## First-Time CLI Auth (per workspace)
+## AI CLIs
 
-AI CLIs (Claude Code, Codex) are pre-installed in the Docker image. Auth once per workspace via OAuth device code flow:
-
-```bash
-ssh <project>.devpod
-
-# Claude Code — uses your Claude Pro/Max subscription
-claude                   # prints a device code URL — approve in browser
-
-# Codex — uses your ChatGPT Plus/Pro subscription
-codex                    # prints a device code URL — approve in browser
-
-# GitHub CLI (if not auto-configured via GH_TOKEN)
-gh auth login
-```
-
-Auth tokens persist in the container. Only need to re-auth after `devpod up --reset`.
+AI tools (Claude Code, Codex) run **locally** on your machine — they connect to the workspace via `ssh <project>.devpod`. They are NOT installed in the container image. This keeps images small and avoids version drift between local AI tools and remote copies.
 
 ## Project Configs
 
@@ -147,7 +132,7 @@ VITE_CLERK_PUBLISHABLE_KEY=pk_test_xxx
 ```
 
 **Public values** (`pk_test_*`, Convex URLs, Sentry DSNs) are loaded into `devpod-env` automatically.
-**Secrets** (`sk_test_*`, webhook secrets) are listed as `# OP_ITEM:` references — install.sh reports which ones are missing.
+**Secrets** (`sk_test_*`, webhook secrets) are listed as `# OP_ITEM:` references — install.sh reports which ones are missing. The fastest way to inject them is scraping from the project's `.env.local` files (see Step 3).
 
 ### Current projects
 
@@ -196,21 +181,35 @@ devpod up PlasmaPOS/plasma --provider-option MACHINE_TYPE=n2d-standard-8
 
 This pulls the Docker image, clones the repo, runs dotfiles `install.sh` (which auto-detects the project and loads its env vars), and runs `bun install`.
 
-### Step 3: Inject secrets (once)
+### Step 3: Inject GH_TOKEN + secrets (once)
 
-The install script will print which secrets are missing. Add them:
+#### GH_TOKEN (required for git push)
 
 ```bash
-ssh seal.devpod 'echo "export CLERK_SECRET_KEY=sk_test_xxx" >> ~/.config/devpod-env'
-ssh seal.devpod 'echo "export STRIPE_SECRET_KEY=sk_test_xxx" >> ~/.config/devpod-env'
+GH_TOKEN=$(gh auth token)
+ssh <project>.devpod "echo 'export GH_TOKEN=$GH_TOKEN' >> ~/.config/devpod-env"
 ```
 
-### Step 4: Auth AI CLIs (once)
+#### Project secrets (from .env.local)
+
+Secrets live in each project's `.env.local` files locally. Scrape them into the workspace:
 
 ```bash
-ssh seal.devpod
-claude    # approve device code in browser
-codex     # approve device code in browser
+# Find which .env.local has your secrets
+SECRETS_FILE=~/Projects/<project>/apps/backend/.env.local
+
+for key in CLERK_SECRET_KEY STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET PLAID_CLIENT_ID PLAID_SECRET RESEND_API_KEY; do
+  val=$(grep "^${key}=" "$SECRETS_FILE" | head -1 | cut -d'=' -f2-)
+  if [ -n "$val" ]; then
+    ssh <project>.devpod "echo 'export ${key}=${val}' >> ~/.config/devpod-env"
+  fi
+done
+```
+
+### Step 4: Verify
+
+```bash
+ssh <project>.devpod 'source ~/.config/devpod-env && env | grep -E "CLERK|STRIPE|CONVEX|GH_TOKEN"'
 ```
 
 That's it. The workspace persists across stop/start. Only `--reset` requires re-doing steps 3-4.
@@ -286,4 +285,4 @@ If you are Claude Code, Codex, or another AI agent running inside a DevPod works
 
 ## Related Repositories
 
-- **[PlasmaPOS/devcontainers](https://github.com/PlasmaPOS/devcontainers)** — Prebuild Docker images (`light` and `full`) with bun, Node.js, Claude Code, Codex, and optional Playwright/Android SDK
+- **[PlasmaPOS/devcontainers](https://github.com/PlasmaPOS/devcontainers)** — Prebuild Docker images (`light` and `full`) with bun, Node.js, and optional Playwright/Android SDK. AI CLIs run locally, not in the image.
