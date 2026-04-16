@@ -35,7 +35,11 @@ devpod context set-options -o DOTFILES_URL=https://github.com/PlasmaPOS/dotfiles
 # 4. Set GCP as default provider
 devpod provider use gcloud
 
-# 5. Configure git identity
+# 5. Disable IDE auto-open (AI CLIs run locally via SSH)
+echo "Setting default IDE to none..."
+devpod ide use none
+
+# 6. Configure git identity
 # Create a local .git-identity file (gitignored) so install.sh picks it up automatically
 echo ""
 read -rp "Git user name (e.g. Shlomo Kabareti): " git_name
@@ -54,9 +58,11 @@ echo ""
 echo "=== DevPod setup complete ==="
 echo ""
 echo "Next steps:"
-echo "  1. Create a workspace:  devpod up <repo>"
-echo "  2. SSH into it:         ssh <repo>.devpod"
-echo "  3. Auth CLIs once:      claude (device code), codex (device code), gh auth login"
+echo "  1. Create a workspace:  devpod up https://github.com/PlasmaPOS/<repo> --provider-option MACHINE_TYPE=n2d-standard-8"
+echo "  2. Inject secrets:      ./inject-secrets.sh <project>"
+echo "  3. SSH into it:         ssh <project>.devpod"
+echo ""
+echo "Note: AI CLIs (claude, codex) run locally — they SSH into the workspace."
 echo ""
 echo "For full image (Playwright + Android), override machine type:"
 echo "  devpod up <repo> --provider-option MACHINE_TYPE=n2d-standard-8"
